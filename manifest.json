@@ -2,7 +2,7 @@
   "name": "舒尔特方格",
   "short_name": "舒尔特方格",
   "description": "专注力训练 - 舒尔特方格",
-  "start_url": "/",
+  "start_url": "./index.html",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#4A7CFF",
