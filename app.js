@@ -179,3 +179,7 @@ function finishGame() {
 // ── Init ──────────────────────────────────────────────────
 updateHomeStats();
 showScreen('screen-home');
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js');
+}
