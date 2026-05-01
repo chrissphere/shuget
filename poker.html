@@ -229,6 +229,16 @@
       </div>
     </div>
     <div class="form-row">
+      <label>记牌张数</label>
+      <div class="chip-group" id="count-chips">
+        <div class="chip" data-count="3">3 张</div>
+        <div class="chip" data-count="4">4 张</div>
+        <div class="chip selected" data-count="5">5 张</div>
+        <div class="chip" data-count="6">6 张</div>
+        <div class="chip" data-count="7">7 张</div>
+      </div>
+    </div>
+    <div class="form-row">
       <label>允许复看次数（每轮）</label>
       <div class="chip-group" id="review-chips">
         <div class="chip" data-review="0">0 次</div>
@@ -329,7 +339,7 @@ const RANKS_ALL = ['A','2','3','4','5','6','7','8','9','10','J','Q','K','大王'
 const RED_SUITS = new Set(['♥','♦','★']);
 const REVIEW_DURATION = 5;
 
-let cfg = { time: 10, mode: 'fan', reviewMax: 1 };
+let cfg = { time: 10, mode: 'fan', reviewMax: 1, cardCount: 5 };
 let currentCards = [];
 let roundNum = 0, totalScore = 0, perfectRounds = 0;
 let reviewUsedThisRound = 0, globalReviewCount = 0, globalReviewTotalMs = 0;
@@ -346,6 +356,7 @@ function setupChips(selector) {
 }
 setupChips('#mode-chips .chip');
 setupChips('#review-chips .chip');
+setupChips('#count-chips .chip');
 
 function shuffle(arr) {
   const a = [...arr];
@@ -361,7 +372,7 @@ function dealCards() {
   for (const s of SUITS) for (const r of RANKS) deck.push({ suit: s, rank: r });
   deck.push({ rank: '大王', suit: '★', isJoker: true, isBig: true });
   deck.push({ rank: '小王', suit: '☆', isJoker: true, isBig: false });
-  return shuffle(deck).slice(0, 5);
+  return shuffle(deck).slice(0, cfg.cardCount);
 }
 
 function cardKey(c) { return c ? c.rank + c.suit : ''; }
@@ -612,6 +623,7 @@ function startGame() {
   cfg.time = Math.max(3, parseInt(document.getElementById('setting-time').value) || 10);
   cfg.mode = (document.querySelector('#mode-chips .chip.selected') || {}).dataset.mode || 'fan';
   cfg.reviewMax = parseInt((document.querySelector('#review-chips .chip.selected') || { dataset:{review:'1'} }).dataset.review);
+  cfg.cardCount = parseInt((document.querySelector('#count-chips .chip.selected') || { dataset:{count:'5'} }).dataset.count);
   roundNum = 0; totalScore = 0; perfectRounds = 0; globalReviewCount = 0; globalReviewTotalMs = 0;
   document.getElementById('total-score').textContent = '0';
   showScreen('screen-game');
@@ -649,7 +661,7 @@ function startInputPhase() {
   setPhase('input');
   const container = document.getElementById('card-inputs');
   container.innerHTML = '';
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < cfg.cardCount; i++) {
     const g = document.createElement('div');
     g.className = 'card-input-group';
     const lbl = document.createElement('label');
@@ -711,7 +723,7 @@ function closeReview() {
 
 function submitAnswer() {
   const userCards = [];
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < cfg.cardCount; i++) {
     const suit = document.getElementById('inp-suit-' + i).value;
     const rank = document.getElementById('inp-rank-' + i).value;
     userCards.push((suit && rank) ? { suit, rank } : null);
@@ -725,14 +737,14 @@ function submitAnswer() {
     if (correctSet.has(k) && !matched.has(k)) { correct++; matched.add(k); }
   });
   totalScore += correct;
-  if (correct === 5) perfectRounds++;
+  if (correct === cfg.cardCount) perfectRounds++;
   document.getElementById('total-score').textContent = totalScore;
   showResult(correct, userCards);
 }
 
 function showResult(correct, userCards) {
   setPhase('result');
-  document.getElementById('round-score-display').textContent = correct + '/5';
+  document.getElementById('round-score-display').textContent = correct + '/' + cfg.cardCount;
   const container = document.getElementById('result-compare');
   container.innerHTML = '';
   currentCards.forEach((card, i) => {
@@ -767,7 +779,7 @@ function nextRound() { startRound(); }
 
 function endGame() {
   clearInterval(memoIntervalId);
-  const total = roundNum * 5;
+  const total = roundNum * cfg.cardCount;
   const acc = total > 0 ? Math.round((totalScore / total) * 100) : 0;
   const rvTotal = Math.round(globalReviewTotalMs / 1000);
   const rvAvg = globalReviewCount > 0 ? Math.round(globalReviewTotalMs / globalReviewCount / 1000) : 0;
