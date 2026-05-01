@@ -607,7 +607,7 @@ function renderCards(containerId, cards, mode) {
     const step = total > 1 ? SPREAD / (total - 1) : 0;
     const cx = W / 2;
     const halfRad = SPREAD / 2 * Math.PI / 180;
-    const pivotX = Math.round(cx - CW * Math.cos(halfRad) / 2);
+    const pivotX = Math.round(cx - CW * (0.2 + 0.3 * Math.cos(halfRad)));
     const stageH = CH + 16;
 
     stage.style.cssText = `display:block;position:relative;width:100%;height:${stageH}px;overflow:visible;`;
@@ -618,7 +618,7 @@ function renderCards(containerId, cards, mode) {
       cardEl.style.position = 'absolute';
       cardEl.style.left = pivotX + 'px';
       cardEl.style.bottom = '0';
-      cardEl.style.transformOrigin = '0% 100%';
+      cardEl.style.transformOrigin = '20% 100%';
       cardEl.style.transform = `rotate(${angle}deg)`;
       cardEl.style.zIndex = i;
       cardEl.style.opacity = '0';
