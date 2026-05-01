@@ -236,6 +236,9 @@
         <div class="chip selected" data-count="5">5 张</div>
         <div class="chip" data-count="6">6 张</div>
         <div class="chip" data-count="7">7 张</div>
+        <div class="chip" data-count="8">8 张</div>
+        <div class="chip" data-count="9">9 张</div>
+        <div class="chip" data-count="10">10 张</div>
       </div>
     </div>
     <div class="form-row">
@@ -268,6 +271,18 @@
       <div class="progress-bar" id="memo-bar" style="width:100%"></div>
     </div>
     <div id="card-stage-memo" class="card-stage"></div>
+    <button onclick="reshuffleMemo()" style="
+      margin-top:4px;width:48px;height:48px;border-radius:50%;
+      background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);
+      color:rgba(255,255,255,0.7);cursor:pointer;display:flex;align-items:center;
+      justify-content:center;transition:transform 0.25s ease,background 0.15s;
+      touch-action:manipulation;flex-shrink:0;" id="btn-reshuffle"
+      title="重新洗牌">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <path d="M1 4v6h6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M3.51 15a9 9 0 1 0 .49-4.65" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
   </div>
 
   <!-- Input -->
@@ -641,6 +656,15 @@ function startRound() {
     renderMemoTimer();
     if (memoRemaining <= 0) { clearInterval(memoIntervalId); startInputPhase(); }
   }, 1000);
+}
+
+function reshuffleMemo() {
+  currentCards = dealCards();
+  renderCards('card-stage-memo', currentCards, cfg.mode);
+  const btn = document.getElementById('btn-reshuffle');
+  btn.style.transform = 'rotate(360deg)';
+  btn.style.background = 'rgba(245,166,35,0.25)';
+  setTimeout(() => { btn.style.transform = ''; btn.style.background = ''; }, 300);
 }
 
 function renderMemoTimer() {
