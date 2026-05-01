@@ -598,32 +598,23 @@ function renderCards(containerId, cards, mode) {
     stage.style.cssText = `display:flex;flex-direction:row;justify-content:center;align-items:center;gap:8px;flex-wrap:nowrap;width:100%;height:${CH + 16}px;`;
     cards.forEach(card => stage.appendChild(buildCard(card, false, CW, CH)));
   } else {
-    // Fan layout: all rank corners land on the same horizontal line.
-    // CSS rotate(θ): y'_topleft = sin(θ)·(-CW/2) + cos(θ)·(-CH)
-    // rank_y = pivotY − sin(θ)·CW/2 − CH·cos(θ) = C  →  topY = C + sin(θ)·CW/2 − CH·(1−cosθ)
-    // Wide spread (7°/card) to match natural held-fan look
+    // True single-pivot fan: every card rotates from the exact same bottom-center point
     const SPREAD = Math.max(40, cards.length * 7);
     const CW = Math.min(120, Math.max(76, Math.floor(W * 0.28)));
     const CH = Math.round(CW * 1.4);
     const total = cards.length;
     const step = total > 1 ? SPREAD / (total - 1) : 0;
     const cx = W / 2;
-    const halfRad = SPREAD / 2 * Math.PI / 180;
-
-    const C = CW / 2 * Math.sin(halfRad) + CH * (1 - Math.cos(halfRad)) + 4;
-    const stageH = Math.round(1.5 * CW * Math.sin(halfRad) + CH) + 14;
+    const stageH = CH + 16;
 
     stage.style.cssText = `display:block;position:relative;width:100%;height:${stageH}px;overflow:visible;`;
 
     cards.forEach((card, i) => {
       const angle = -SPREAD / 2 + step * i;
-      const rad = angle * Math.PI / 180;
-      const topY = C + CW / 2 * Math.sin(rad) - CH * (1 - Math.cos(rad));
-      const bottomX = cx + Math.sin(rad) * CW * 0.35;
       const cardEl = buildCard(card, false, CW, CH);
       cardEl.style.position = 'absolute';
-      cardEl.style.left = bottomX + 'px';
-      cardEl.style.top = topY + 'px';
+      cardEl.style.left = cx + 'px';
+      cardEl.style.bottom = '0';
       cardEl.style.transformOrigin = '50% 100%';
       cardEl.style.transform = `translateX(-50%) rotate(${angle}deg)`;
       cardEl.style.zIndex = i;
