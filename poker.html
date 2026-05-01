@@ -599,7 +599,7 @@ function renderCards(containerId, cards, mode) {
     cards.forEach(card => stage.appendChild(buildCard(card, false, CW, CH)));
   } else {
     // Fan: cards rotate from bottom-center pivot so bottoms converge naturally
-    const SPREAD = 30; // total fan angle
+    const SPREAD = Math.max(30, cards.length * 5); // wider fan for more cards
     const CW = Math.min(114, Math.max(68, Math.floor(W * 0.26)));
     const CH = Math.round(CW * 1.4);
     const stageH = CH + Math.round(CW * 0.28);
