@@ -5,123 +5,228 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="舒尔特方格">
-  <meta name="theme-color" content="#4A7CFF">
-  <title>舒尔特方格</title>
+  <meta name="apple-mobile-web-app-title" content="记忆训练">
+  <meta name="theme-color" content="#1a1f5e">
+  <title>记忆力训练</title>
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icons/icon-180.png">
   <link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png">
   <link rel="apple-touch-icon" sizes="120x120" href="icons/icon-120.png">
-  <link rel="stylesheet" href="style.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    :root {
+      --bg1: #0f0c29;
+      --bg2: #1a1f5e;
+      --card1: #4A7CFF;
+      --card2: #f5a623;
+      --text: #f0f2f5;
+      --text2: #9ca3af;
+    }
+
+    html, body {
+      min-height: 100%;
+      font-family: -apple-system, 'PingFang SC', 'Helvetica Neue', sans-serif;
+      background: linear-gradient(160deg, var(--bg1) 0%, var(--bg2) 100%);
+      color: var(--text);
+    }
+
+    .page {
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: env(safe-area-inset-top, 32px) 20px env(safe-area-inset-bottom, 32px);
+    }
+
+    .header {
+      text-align: center;
+      margin-top: 20px;
+      margin-bottom: 40px;
+    }
+
+    .logo {
+      width: 72px;
+      height: 72px;
+      border-radius: 18px;
+      margin: 0 auto 16px;
+      overflow: hidden;
+    }
+
+    .logo img { width: 100%; height: 100%; object-fit: cover; }
+
+    .app-name {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: var(--text);
+    }
+
+    .app-desc {
+      font-size: 14px;
+      color: var(--text2);
+      margin-top: 6px;
+    }
+
+    .section-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text2);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      width: 100%;
+      max-width: 400px;
+      margin-bottom: 14px;
+    }
+
+    .modules {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .module-card {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 20px;
+      padding: 20px;
+      text-decoration: none;
+      color: inherit;
+      transition: transform 0.15s ease, background 0.15s ease;
+      touch-action: manipulation;
+      cursor: pointer;
+    }
+
+    .module-card:active {
+      transform: scale(0.97);
+      background: rgba(255,255,255,0.10);
+    }
+
+    .module-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      flex-shrink: 0;
+    }
+
+    .icon-schulte { background: linear-gradient(135deg, #4A7CFF, #7B5EA7); }
+    .icon-poker   { background: linear-gradient(135deg, #f5a623, #e94560); }
+
+    .module-info { flex: 1; }
+
+    .module-name {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .module-sub {
+      font-size: 13px;
+      color: var(--text2);
+      margin-bottom: 10px;
+    }
+
+    .module-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    .tag {
+      font-size: 11px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-weight: 600;
+    }
+
+    .tag-blue { background: rgba(74,124,255,0.2); color: #7BAEFF; }
+    .tag-gold { background: rgba(245,166,35,0.2); color: #f5c842; }
+
+    .module-arrow {
+      color: rgba(255,255,255,0.3);
+      flex-shrink: 0;
+    }
+
+    /* Schulte grid icon */
+    .schulte-grid {
+      display: grid;
+      grid-template-columns: repeat(3,1fr);
+      gap: 3px;
+      width: 32px;
+      height: 32px;
+    }
+    .schulte-grid span {
+      background: rgba(255,255,255,0.85);
+      border-radius: 2px;
+    }
+  </style>
 </head>
 <body>
+<div class="page">
 
-<!-- 主页 -->
-<div id="screen-home" class="screen active">
-  <div class="home-header">
-    <h1 class="app-title">舒尔特方格</h1>
-    <p class="app-subtitle">专注力训练</p>
+  <div class="header">
+    <div class="logo">
+      <img src="icons/icon-192.png" alt="logo">
+    </div>
+    <div class="app-name">记忆力训练</div>
+    <div class="app-desc">专注 · 记忆 · 成长</div>
   </div>
 
-  <div class="size-selector">
-    <p class="section-label">选择难度</p>
-    <div class="size-buttons">
-      <button class="size-btn" data-size="3">
-        <span class="size-num">3×3</span>
-        <span class="size-tag">入门</span>
-      </button>
-      <button class="size-btn" data-size="4">
-        <span class="size-num">4×4</span>
-        <span class="size-tag">简单</span>
-      </button>
-      <button class="size-btn active" data-size="5">
-        <span class="size-num">5×5</span>
-        <span class="size-tag">经典</span>
-      </button>
-      <button class="size-btn" data-size="6">
-        <span class="size-num">6×6</span>
-        <span class="size-tag">困难</span>
-      </button>
-      <button class="size-btn" data-size="7">
-        <span class="size-num">7×7</span>
-        <span class="size-tag">专家</span>
-      </button>
-    </div>
-  </div>
+  <p class="section-title">训练模块</p>
 
-  <div class="stats-card" id="home-stats">
-    <div class="stat-item">
-      <span class="stat-value" id="stat-best">--</span>
-      <span class="stat-label">最佳成绩</span>
-    </div>
-    <div class="stat-divider"></div>
-    <div class="stat-item">
-      <span class="stat-value" id="stat-avg">--</span>
-      <span class="stat-label">平均成绩</span>
-    </div>
-    <div class="stat-divider"></div>
-    <div class="stat-item">
-      <span class="stat-value" id="stat-count">0</span>
-      <span class="stat-label">完成次数</span>
-    </div>
-  </div>
+  <div class="modules">
 
-  <button class="btn-start" id="btn-start">开始训练</button>
-
-  <div class="tip-text">盯住屏幕中心，用余光找数字</div>
-</div>
-
-<!-- 游戏页 -->
-<div id="screen-game" class="screen">
-  <div class="game-header">
-    <button class="btn-back" id="btn-back">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-        <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <a class="module-card" href="schulte.html">
+      <div class="module-icon icon-schulte">
+        <div class="schulte-grid">
+          <span></span><span></span><span></span>
+          <span></span><span></span><span></span>
+          <span></span><span></span><span></span>
+        </div>
+      </div>
+      <div class="module-info">
+        <div class="module-name">舒尔特方格</div>
+        <div class="module-sub">专注力训练 · 视觉广度</div>
+        <div class="module-tags">
+          <span class="tag tag-blue">注意力</span>
+          <span class="tag tag-blue">眼动训练</span>
+          <span class="tag tag-blue">5种难度</span>
+        </div>
+      </div>
+      <svg class="module-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
-    </button>
-    <div class="timer-display" id="timer-display">0.0</div>
-    <div class="game-size-label" id="game-size-label">5×5</div>
-  </div>
+    </a>
 
-  <div class="progress-bar-wrap">
-    <div class="progress-bar" id="progress-bar"></div>
-  </div>
-
-  <div class="grid-wrap">
-    <div class="grid" id="grid"></div>
-  </div>
-
-  <button class="btn-refresh" id="btn-refresh" title="重新开始">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-      <path d="M1 4v6h6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M3.51 15a9 9 0 1 0 .49-4.65" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </button>
-</div>
-
-<!-- 结果页 -->
-<div id="screen-result" class="screen">
-  <div class="result-content">
-    <div class="result-icon">🎉</div>
-    <div class="result-time" id="result-time">25.3s</div>
-    <div class="result-label">完成时间</div>
-
-    <div class="result-stats">
-      <div class="result-stat-item">
-        <span class="result-stat-val" id="result-best">--</span>
-        <span class="result-stat-lbl">最佳</span>
+    <a class="module-card" href="poker.html">
+      <div class="module-icon icon-poker">♠</div>
+      <div class="module-info">
+        <div class="module-name">扑克记忆</div>
+        <div class="module-sub">工作记忆 · 回忆能力</div>
+        <div class="module-tags">
+          <span class="tag tag-gold">记忆宫殿</span>
+          <span class="tag tag-gold">限时记忆</span>
+          <span class="tag tag-gold">复看功能</span>
+        </div>
       </div>
-      <div class="result-stat-item">
-        <span class="result-stat-val" id="result-rank">--</span>
-        <span class="result-stat-lbl">排名提示</span>
-      </div>
-    </div>
+      <svg class="module-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </a>
 
-    <button class="btn-start" id="btn-again">再来一次</button>
-    <button class="btn-outline" id="btn-home">返回主页</button>
   </div>
-</div>
 
-<script src="app.js"></script>
+</div>
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js');
+  }
+</script>
 </body>
 </html>

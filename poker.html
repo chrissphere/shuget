@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0f0c29">
+  <title>扑克记忆</title>
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    :root {
+      --bg1: #0f0c29;
+      --bg2: #302b63;
+      --bg3: #24243e;
+      --accent: #e94560;
+      --gold: #f5a623;
+      --green: #27ae60;
+      --card-bg: #fff;
+      --card-w: 120px;
+      --card-h: 168px;
+      --radius: 10px;
+      --font: -apple-system, 'PingFang SC', 'Segoe UI', system-ui, sans-serif;
+    }
+
+    body {
+      font-family: var(--font);
+      min-height: 100dvh;
+      background: linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3));
+      color: #eee;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: env(safe-area-inset-top, 16px) 16px env(safe-area-inset-bottom, 40px);
+    }
+
+    /* Back nav */
+    .top-nav {
+      width: 100%;
+      max-width: 700px;
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .btn-back-home {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: rgba(255,255,255,0.5);
+      font-size: 14px;
+      text-decoration: none;
+      padding: 8px 0;
+      touch-action: manipulation;
+      transition: color 0.15s;
+    }
+    .btn-back-home:active { color: var(--gold); }
+
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      margin-bottom: 24px;
+      background: linear-gradient(90deg, #f5a623, #e94560);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* Screens */
+    .screen { width: 100%; max-width: 700px; display: none; flex-direction: column; align-items: center; gap: 20px; }
+    .screen.active { display: flex; }
+
+    /* Settings */
+    .settings-card {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 18px;
+      padding: 28px;
+      width: 100%;
+      backdrop-filter: blur(10px);
+    }
+    .settings-card h2 { margin-bottom: 20px; font-size: 1.1rem; color: #ccc; }
+    .form-row { display: flex; flex-direction: column; margin-bottom: 18px; }
+    .form-row label { font-size: 0.82rem; color: #aaa; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+    .form-row input[type=number] {
+      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 8px; color: #eee; font-size: 1rem; padding: 10px 14px; outline: none;
+    }
+    .form-row input[type=number]:focus { border-color: var(--gold); }
+
+    .chip-group { display: flex; gap: 8px; flex-wrap: wrap; }
+    .chip {
+      padding: 8px 16px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.07); cursor: pointer; font-size: 0.88rem;
+      transition: all .18s; user-select: none; touch-action: manipulation;
+    }
+    .chip.selected { background: var(--gold); border-color: var(--gold); color: #000; font-weight: 600; }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 13px 28px; border-radius: 999px; border: none; font-size: 1rem;
+      font-weight: 600; cursor: pointer; transition: transform .12s, opacity .12s;
+      text-transform: uppercase; letter-spacing: 1px; touch-action: manipulation;
+    }
+    .btn:active { transform: scale(0.96); opacity: 0.9; }
+    .btn-primary { background: linear-gradient(90deg, var(--gold), var(--accent)); color: #fff; box-shadow: 0 4px 20px rgba(229,69,96,.35); }
+    .btn-secondary { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #eee; }
+    .btn-review { background: linear-gradient(90deg, #1a73e8, #6c5ce7); color: #fff; font-size: 0.88rem; padding: 10px 20px; }
+    .btn-review:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+    .btn-submit { background: linear-gradient(90deg, var(--green), #2ecc71); color: #fff; }
+
+    /* Progress */
+    .progress-wrap { width: 100%; background: rgba(255,255,255,0.1); border-radius: 999px; height: 6px; overflow: hidden; }
+    .progress-bar { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--gold), var(--accent)); transition: width .1s linear; }
+
+    /* Timer */
+    .timer-display { font-size: 3rem; font-weight: 700; color: var(--gold); letter-spacing: 3px; text-shadow: 0 0 20px rgba(245,166,35,.5); }
+    .timer-label { font-size: 0.78rem; color: #888; text-transform: uppercase; letter-spacing: 2px; }
+
+    /* Card stage */
+    .card-stage { position: relative; width: 100%; min-height: 200px; display: flex; align-items: center; justify-content: center; }
+
+    /* Playing card */
+    .card {
+      width: var(--card-w); height: var(--card-h); background: var(--card-bg);
+      border-radius: var(--radius); box-shadow: 0 8px 32px rgba(0,0,0,.55), 0 2px 6px rgba(0,0,0,.3);
+      display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+      padding: 8px 6px; font-size: 1.5rem; font-weight: 700; user-select: none; position: relative;
+    }
+    .card.red { color: #e63946; }
+    .card.black { color: #1a1a2e; }
+    .card .corner { position: absolute; font-size: 0.75rem; font-weight: 700; line-height: 1; display: flex; flex-direction: column; align-items: center; }
+    .card .corner.tl { top: 6px; left: 6px; }
+    .card .corner.br { bottom: 6px; right: 6px; transform: rotate(180deg); }
+    .card .suit-center { font-size: 2.2rem; display: flex; align-items: center; justify-content: center; flex-grow: 1; width: 100%; }
+
+    /* Input */
+    .input-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+    .card-input-group { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .card-input-group label { font-size: 0.72rem; color: #888; }
+    .card-picker {
+      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 8px; color: #eee; padding: 6px; font-size: 0.85rem; width: 80px; outline: none;
+    }
+    .card-picker:focus { border-color: var(--gold); }
+    .card-picker option { background: #302b63; }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,.75); display: flex;
+      align-items: center; justify-content: center; z-index: 1000;
+      backdrop-filter: blur(4px); opacity: 0; pointer-events: none; transition: opacity .25s;
+    }
+    .modal-overlay.show { opacity: 1; pointer-events: all; }
+    .modal {
+      background: linear-gradient(135deg, #1e1b4b, #302b63); border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 20px; padding: 28px; display: flex; flex-direction: column;
+      align-items: center; gap: 18px; box-shadow: 0 20px 60px rgba(0,0,0,.6); min-width: 320px; max-width: 90vw;
+    }
+    .modal h3 { font-size: 1rem; color: var(--gold); }
+
+    /* Result */
+    .result-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+    .result-card-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .result-badge { font-size: 0.72rem; padding: 2px 8px; border-radius: 999px; font-weight: 700; }
+    .badge-correct { background: var(--green); color: #fff; }
+    .badge-wrong { background: var(--accent); color: #fff; }
+    .badge-missed { background: #666; color: #eee; }
+    .score-display { font-size: 2.5rem; font-weight: 700; color: var(--gold); }
+
+    /* Stats */
+    .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; width: 100%; }
+    .stat-item { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 16px; text-align: center; }
+    .stat-item .stat-value { font-size: 1.8rem; font-weight: 700; color: var(--gold); }
+    .stat-item .stat-label { font-size: 0.72rem; color: #888; margin-top: 4px; text-transform: uppercase; letter-spacing: 1px; }
+    .review-stats { background: rgba(108,92,231,0.15); border: 1px solid rgba(108,92,231,0.3); border-radius: 14px; padding: 16px; width: 100%; text-align: center; }
+    .review-stats h3 { font-size: 0.82rem; color: #a29bfe; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
+    .rs-row { display: flex; justify-content: space-around; }
+    .rs-item .rs-v { font-size: 1.4rem; font-weight: 700; color: #a29bfe; }
+    .rs-item .rs-l { font-size: 0.68rem; color: #888; }
+
+    /* Misc */
+    .round-info { display: flex; gap: 20px; align-items: center; font-size: 0.85rem; color: #aaa; }
+    .round-info span { font-weight: 700; color: #eee; }
+    .phase-label { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 2px; color: var(--gold); opacity: 0.8; }
+
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes countdown-flash { 0%,100% { color: var(--gold); } 50% { color: var(--accent); } }
+    .animate-in { animation: fadeInUp .4s ease both; }
+
+    @media (max-width: 500px) {
+      :root { --card-w: 60px; --card-h: 84px; }
+      h1 { font-size: 1.4rem; }
+      .settings-card { padding: 18px; }
+      .modal { min-width: 260px; padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="top-nav">
+  <a href="index.html" class="btn-back-home">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+      <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    首页
+  </a>
+</div>
+
+<h1>&#9824; 扑克记忆 &#9829;</h1>
+
+<!-- SETTINGS -->
+<section id="screen-settings" class="screen active">
+  <div class="settings-card animate-in">
+    <h2>游戏设置</h2>
+    <div class="form-row">
+      <label>记忆时间（秒）</label>
+      <input id="setting-time" type="number" min="3" max="60" value="10" />
+    </div>
+    <div class="form-row">
+      <label>卡牌显示模式</label>
+      <div class="chip-group" id="mode-chips">
+        <div class="chip selected" data-mode="fan">扇形手牌</div>
+        <div class="chip" data-mode="flat">平面排列</div>
+      </div>
+    </div>
+    <div class="form-row">
+      <label>允许复看次数（每轮）</label>
+      <div class="chip-group" id="review-chips">
+        <div class="chip" data-review="0">0 次</div>
+        <div class="chip selected" data-review="1">1 次</div>
+        <div class="chip" data-review="2">2 次</div>
+        <div class="chip" data-review="3">3 次</div>
+      </div>
+    </div>
+  </div>
+  <button class="btn btn-primary" onclick="startGame()">开始训练</button>
+</section>
+
+<!-- GAME -->
+<section id="screen-game" class="screen">
+  <div class="round-info">
+    轮次：<span id="round-num">1</span>
+    &nbsp;|&nbsp;
+    总得分：<span id="total-score">0</span>
+  </div>
+
+  <!-- Memorize -->
+  <div id="phase-memorize" style="width:100%;display:flex;flex-direction:column;align-items:center;gap:16px;">
+    <div class="phase-label">记忆阶段</div>
+    <div class="timer-label">剩余时间</div>
+    <div class="timer-display" id="memo-timer">10</div>
+    <div class="progress-wrap" style="max-width:300px;width:90%;">
+      <div class="progress-bar" id="memo-bar" style="width:100%"></div>
+    </div>
+    <div id="card-stage-memo" class="card-stage" style="min-height:220px;"></div>
+  </div>
+
+  <!-- Input -->
+  <div id="phase-input" style="width:100%;display:none;flex-direction:column;align-items:center;gap:16px;">
+    <div class="phase-label">输入阶段</div>
+    <p style="font-size:0.83rem;color:#aaa;">请选择你记住的 5 张牌（花色 + 点数）</p>
+    <div class="input-row" id="card-inputs"></div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:4px;">
+      <button id="review-btn" class="btn btn-review" onclick="openReview()">
+        &#128065; 复看牌面
+        <span id="review-badge" style="font-size:0.72rem;opacity:0.8;"></span>
+      </button>
+      <button class="btn btn-submit" onclick="submitAnswer()">提交答案</button>
+    </div>
+  </div>
+
+  <!-- Result -->
+  <div id="phase-result" style="width:100%;display:none;flex-direction:column;align-items:center;gap:16px;">
+    <div class="phase-label">本轮结果</div>
+    <div class="score-display" id="round-score-display">0/5</div>
+    <p style="font-size:0.83rem;color:#aaa;">正确答案（上）vs 你的作答（下）</p>
+    <div id="result-compare" class="result-row"></div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:8px;">
+      <button class="btn btn-secondary" onclick="endGame()">结束训练</button>
+      <button class="btn btn-primary" onclick="nextRound()">下一轮 &rarr;</button>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<section id="screen-stats" class="screen">
+  <div class="phase-label" style="font-size:1rem;">训练结束</div>
+  <div class="stats-grid animate-in">
+    <div class="stat-item"><div class="stat-value" id="st-rounds">0</div><div class="stat-label">总轮数</div></div>
+    <div class="stat-item"><div class="stat-value" id="st-score">0</div><div class="stat-label">总得分</div></div>
+    <div class="stat-item"><div class="stat-value" id="st-accuracy">0%</div><div class="stat-label">正确率</div></div>
+    <div class="stat-item"><div class="stat-value" id="st-perfect">0</div><div class="stat-label">满分轮数</div></div>
+  </div>
+  <div class="review-stats animate-in">
+    <h3>复看统计</h3>
+    <div class="rs-row">
+      <div class="rs-item"><div class="rs-v" id="st-rv-count">0</div><div class="rs-l">复看次数</div></div>
+      <div class="rs-item"><div class="rs-v" id="st-rv-total">0s</div><div class="rs-l">总时长</div></div>
+      <div class="rs-item"><div class="rs-v" id="st-rv-avg">-</div><div class="rs-l">平均时长</div></div>
+    </div>
+  </div>
+  <button class="btn btn-primary" onclick="goSettings()">重新开始</button>
+</section>
+
+<!-- REVIEW MODAL -->
+<div id="review-modal" class="modal-overlay">
+  <div class="modal">
+    <h3>&#128065; 复看牌面</h3>
+    <div class="timer-label">自动关闭倒计时</div>
+    <div class="timer-display" id="review-timer">5</div>
+    <div class="progress-wrap" style="width:200px">
+      <div class="progress-bar" id="review-bar" style="width:100%"></div>
+    </div>
+    <div id="card-stage-review" class="card-stage" style="min-height:180px;width:320px;max-width:88vw;"></div>
+    <button class="btn btn-secondary" onclick="closeReview(true)">关闭</button>
+  </div>
+</div>
+
+<script>
+const SUITS = ['♠','♥','♦','♣'];
+const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+const RED_SUITS = new Set(['♥','♦']);
+const REVIEW_DURATION = 5;
+
+let cfg = { time: 10, mode: 'fan', reviewMax: 1 };
+let currentCards = [];
+let roundNum = 0, totalScore = 0, perfectRounds = 0;
+let reviewUsedThisRound = 0, globalReviewCount = 0, globalReviewTotalMs = 0;
+let memoIntervalId = null, memoRemaining = 0, memoTotal = 0;
+let reviewIntervalId = null, reviewRemaining = 0, reviewStart = 0;
+
+function setupChips(selector) {
+  document.querySelectorAll(selector).forEach(c => {
+    c.addEventListener('click', () => {
+      document.querySelectorAll(selector).forEach(x => x.classList.remove('selected'));
+      c.classList.add('selected');
+    });
+  });
+}
+setupChips('#mode-chips .chip');
+setupChips('#review-chips .chip');
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function dealCards() {
+  const deck = [];
+  for (const s of SUITS) for (const r of RANKS) deck.push({ suit: s, rank: r });
+  return shuffle(deck).slice(0, 5);
+}
+
+function cardKey(c) { return c ? c.rank + c.suit : ''; }
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function setPhase(name) {
+  ['memorize','input','result'].forEach(p => {
+    document.getElementById('phase-' + p).style.display = p === name ? 'flex' : 'none';
+  });
+}
+
+function makeCorner(rank, suit, cls) {
+  const d = document.createElement('div');
+  d.className = 'corner ' + cls;
+  d.innerHTML = rank + '<br>' + suit;
+  return d;
+}
+
+function getFaceCardSVG(rank, suit, isRed) {
+  const color = isRed ? '#e63946' : '#1a1a2e';
+  const crowns = { 'J': '♛', 'Q': '♕', 'K': '♔' };
+  return `<svg width="80" height="100" viewBox="0 0 80 100" xmlns="http://www.w3.org/2000/svg">
+    <text x="40" y="22" text-anchor="middle" font-size="20" fill="${color}">${crowns[rank]}</text>
+    <circle cx="40" cy="42" r="12" fill="none" stroke="${color}" stroke-width="2.5"/>
+    <circle cx="36" cy="40" r="1.5" fill="${color}"/>
+    <circle cx="44" cy="40" r="1.5" fill="${color}"/>
+    <path d="M 35 46 Q 40 50 45 46" stroke="${color}" stroke-width="1.5" fill="none"/>
+    <line x1="40" y1="54" x2="40" y2="72" stroke="${color}" stroke-width="2.5"/>
+    <line x1="30" y1="60" x2="50" y2="60" stroke="${color}" stroke-width="2.5"/>
+    <line x1="40" y1="72" x2="32" y2="84" stroke="${color}" stroke-width="2.5"/>
+    <line x1="40" y1="72" x2="48" y2="84" stroke="${color}" stroke-width="2.5"/>
+    <text x="40" y="98" text-anchor="middle" font-size="16" font-weight="bold" fill="${color}">${rank}</text>
+  </svg>`;
+}
+
+const PIP_POS = {
+  1:[[50,50]],2:[[50,30],[50,70]],3:[[50,25],[50,50],[50,75]],
+  4:[[28,28],[72,28],[28,72],[72,72]],5:[[28,28],[72,28],[50,50],[28,72],[72,72]],
+  6:[[28,22],[72,22],[28,50],[72,50],[28,78],[72,78]],
+  7:[[28,22],[72,22],[28,50],[72,50],[28,78],[72,78],[50,35]],
+  8:[[28,22],[72,22],[28,50],[72,50],[28,78],[72,78],[50,32],[50,68]],
+  9:[[28,20],[72,20],[28,45],[72,45],[28,72],[72,72],[50,30],[50,50],[50,70]],
+  10:[[28,20],[72,20],[28,42],[72,42],[28,68],[72,68],[50,28],[50,45],[50,58],[50,75]]
+};
+
+function buildCard(card, _i, _t, _mode, small) {
+  const isRed = RED_SUITS.has(card.suit);
+  const el = document.createElement('div');
+  el.className = 'card ' + (isRed ? 'red' : 'black');
+  if (small) el.style.cssText = 'position:relative;left:auto;width:62px;height:87px;font-size:1.1rem;margin:0;';
+  el.appendChild(makeCorner(card.rank, card.suit, 'tl'));
+  if (!small) {
+    const center = document.createElement('div');
+    center.className = 'suit-center';
+    const isFace = ['J','Q','K'].includes(card.rank);
+    if (isFace) {
+      center.innerHTML = getFaceCardSVG(card.rank, card.suit, isRed);
+    } else {
+      const n = parseInt(card.rank) || (card.rank === 'A' ? 1 : 0);
+      const pos = PIP_POS[n] || [];
+      center.innerHTML = `<svg width="100%" height="100%" viewBox="0 0 100 100">${
+        pos.map(([x,y]) => `<text x="${x}" y="${y}" text-anchor="middle" font-size="30" fill="currentColor">${card.suit}</text>`).join('')
+      }</svg>`;
+    }
+    el.appendChild(center);
+  }
+  el.appendChild(makeCorner(card.rank, card.suit, 'br'));
+  return el;
+}
+
+function renderCards(containerId, cards, mode) {
+  const stage = document.getElementById(containerId);
+  stage.innerHTML = '';
+  if (mode === 'flat') {
+    stage.style.cssText = 'display:flex;flex-direction:row;justify-content:center;align-items:center;gap:10px;position:relative;';
+    cards.forEach((card, i) => stage.appendChild(buildCard(card, i, cards.length, mode, false)));
+  } else {
+    stage.style.cssText = 'display:flex;position:relative;justify-content:center;align-items:center;height:200px;';
+    const spread = 45, total = cards.length;
+    cards.forEach((card, i) => {
+      const angle = -spread/2 + (total > 1 ? spread/(total-1) : 0) * i;
+      const rad = angle * Math.PI / 180;
+      const offsetX = Math.sin(rad) * 80;
+      const offsetY = (1 - Math.cos(rad)) * 80 * 0.5;
+      const cardEl = buildCard(card, i, total, mode, false);
+      cardEl.style.cssText = `position:absolute;left:calc(50% + ${offsetX}px);top:calc(50% - ${offsetY}px);transform:translate(-50%,-50%) rotate(${angle}deg);z-index:${i};opacity:0;transition:opacity 0.3s;`;
+      setTimeout(() => { cardEl.style.opacity = '1'; }, 50 + i * 60);
+      stage.appendChild(cardEl);
+    });
+  }
+}
+
+function startGame() {
+  cfg.time = Math.max(3, parseInt(document.getElementById('setting-time').value) || 10);
+  cfg.mode = (document.querySelector('#mode-chips .chip.selected') || {}).dataset.mode || 'fan';
+  cfg.reviewMax = parseInt((document.querySelector('#review-chips .chip.selected') || { dataset:{review:'1'} }).dataset.review);
+  roundNum = 0; totalScore = 0; perfectRounds = 0; globalReviewCount = 0; globalReviewTotalMs = 0;
+  document.getElementById('total-score').textContent = '0';
+  showScreen('screen-game');
+  startRound();
+}
+
+function startRound() {
+  roundNum++;
+  reviewUsedThisRound = 0;
+  document.getElementById('round-num').textContent = roundNum;
+  currentCards = dealCards();
+  setPhase('memorize');
+  renderCards('card-stage-memo', currentCards, cfg.mode);
+  memoTotal = cfg.time; memoRemaining = cfg.time;
+  renderMemoTimer();
+  clearInterval(memoIntervalId);
+  memoIntervalId = setInterval(() => {
+    memoRemaining--;
+    renderMemoTimer();
+    if (memoRemaining <= 0) { clearInterval(memoIntervalId); startInputPhase(); }
+  }, 1000);
+}
+
+function renderMemoTimer() {
+  const el = document.getElementById('memo-timer');
+  el.textContent = memoRemaining;
+  if (memoRemaining <= 3) {
+    el.style.animation = 'countdown-flash .5s ease';
+    setTimeout(() => { el.style.animation = ''; }, 500);
+  }
+  document.getElementById('memo-bar').style.width = ((memoRemaining / memoTotal) * 100) + '%';
+}
+
+function startInputPhase() {
+  setPhase('input');
+  const container = document.getElementById('card-inputs');
+  container.innerHTML = '';
+  for (let i = 0; i < 5; i++) {
+    const g = document.createElement('div');
+    g.className = 'card-input-group';
+    const lbl = document.createElement('label');
+    lbl.textContent = '第' + (i+1) + '张';
+    const suitSel = document.createElement('select');
+    suitSel.className = 'card-picker'; suitSel.id = 'inp-suit-' + i;
+    suitSel.innerHTML = '<option value="">花色</option>' + SUITS.map(s => `<option value="${s}">${s}</option>`).join('');
+    const rankSel = document.createElement('select');
+    rankSel.className = 'card-picker'; rankSel.id = 'inp-rank-' + i;
+    rankSel.innerHTML = '<option value="">点数</option>' + RANKS.map(r => `<option value="${r}">${r}</option>`).join('');
+    g.append(lbl, suitSel, rankSel);
+    container.appendChild(g);
+  }
+  updateReviewBtn();
+}
+
+function updateReviewBtn() {
+  const rem = cfg.reviewMax - reviewUsedThisRound;
+  document.getElementById('review-btn').disabled = rem <= 0;
+  document.getElementById('review-badge').textContent = '(剩余' + rem + '次)';
+}
+
+function openReview() {
+  if (reviewUsedThisRound >= cfg.reviewMax) return;
+  reviewUsedThisRound++; globalReviewCount++;
+  updateReviewBtn();
+  reviewStart = Date.now(); reviewRemaining = REVIEW_DURATION;
+  renderCards('card-stage-review', currentCards, cfg.mode);
+  document.getElementById('review-modal').classList.add('show');
+  renderReviewTimer();
+  clearInterval(reviewIntervalId);
+  reviewIntervalId = setInterval(() => {
+    reviewRemaining--;
+    renderReviewTimer();
+    if (reviewRemaining <= 0) closeReview(false);
+  }, 1000);
+}
+
+function renderReviewTimer() {
+  document.getElementById('review-timer').textContent = reviewRemaining;
+  document.getElementById('review-bar').style.width = ((reviewRemaining / REVIEW_DURATION) * 100) + '%';
+}
+
+function closeReview() {
+  clearInterval(reviewIntervalId);
+  globalReviewTotalMs += Date.now() - reviewStart;
+  document.getElementById('review-modal').classList.remove('show');
+}
+
+function submitAnswer() {
+  const userCards = [];
+  for (let i = 0; i < 5; i++) {
+    const suit = document.getElementById('inp-suit-' + i).value;
+    const rank = document.getElementById('inp-rank-' + i).value;
+    userCards.push((suit && rank) ? { suit, rank } : null);
+  }
+  const correctSet = new Set(currentCards.map(cardKey));
+  const matched = new Set();
+  let correct = 0;
+  userCards.forEach(uc => {
+    if (!uc) return;
+    const k = cardKey(uc);
+    if (correctSet.has(k) && !matched.has(k)) { correct++; matched.add(k); }
+  });
+  totalScore += correct;
+  if (correct === 5) perfectRounds++;
+  document.getElementById('total-score').textContent = totalScore;
+  showResult(correct, userCards);
+}
+
+function showResult(correct, userCards) {
+  setPhase('result');
+  document.getElementById('round-score-display').textContent = correct + '/5';
+  const container = document.getElementById('result-compare');
+  container.innerHTML = '';
+  currentCards.forEach((card, i) => {
+    const uc = userCards[i];
+    const isMatch = uc && cardKey(uc) === cardKey(card);
+    const wrap = document.createElement('div');
+    wrap.className = 'result-card-wrap';
+    wrap.style.cssText = 'opacity:0;transform:translateY(16px);transition:opacity 0.4s ease ' + (i*0.1) + 's,transform 0.4s ease ' + (i*0.1) + 's;';
+    const cEl = buildCard(card, 0, 1, 'flat', true);
+    const cLab = document.createElement('div');
+    cLab.className = 'result-badge badge-correct'; cLab.textContent = '正确';
+    wrap.append(cEl, cLab);
+    if (uc) {
+      const uEl = buildCard(uc, 0, 1, 'flat', true);
+      uEl.style.marginTop = '6px';
+      if (!isMatch) uEl.style.boxShadow = '0 0 0 2px #e94560';
+      const uLab = document.createElement('div');
+      uLab.className = 'result-badge ' + (isMatch ? 'badge-correct' : 'badge-wrong');
+      uLab.textContent = isMatch ? '✓' : ('✗ ' + cardKey(uc));
+      wrap.append(uEl, uLab);
+    } else {
+      const miss = document.createElement('div');
+      miss.className = 'result-badge badge-missed'; miss.style.marginTop = '6px'; miss.textContent = '未填';
+      wrap.appendChild(miss);
+    }
+    container.appendChild(wrap);
+    setTimeout(() => { wrap.style.opacity = '1'; wrap.style.transform = 'translateY(0)'; }, 50);
+  });
+}
+
+function nextRound() { startRound(); }
+
+function endGame() {
+  clearInterval(memoIntervalId);
+  const total = roundNum * 5;
+  const acc = total > 0 ? Math.round((totalScore / total) * 100) : 0;
+  const rvTotal = Math.round(globalReviewTotalMs / 1000);
+  const rvAvg = globalReviewCount > 0 ? Math.round(globalReviewTotalMs / globalReviewCount / 1000) : 0;
+  document.getElementById('st-rounds').textContent = roundNum;
+  document.getElementById('st-score').textContent = totalScore;
+  document.getElementById('st-accuracy').textContent = acc + '%';
+  document.getElementById('st-perfect').textContent = perfectRounds;
+  document.getElementById('st-rv-count').textContent = globalReviewCount;
+  document.getElementById('st-rv-total').textContent = rvTotal + 's';
+  document.getElementById('st-rv-avg').textContent = globalReviewCount > 0 ? rvAvg + 's' : '-';
+  showScreen('screen-stats');
+}
+
+function goSettings() { showScreen('screen-settings'); }
+</script>
+</body>
+</html>
