@@ -1,4 +1,4 @@
-const CACHE = 'schulte-v2';
+const CACHE = 'memory-v1';
 const ASSETS = [
   './',
   './index.html',
