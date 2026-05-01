@@ -106,7 +106,6 @@ function handleCellClick(cell, num) {
     cell.style.color = 'var(--success)';
     currentTarget++;
 
-    updateTargetDisplay();
     updateProgress();
 
     if (currentTarget > totalCells) {
@@ -116,15 +115,6 @@ function handleCellClick(cell, num) {
     cell.classList.add('wrong');
     setTimeout(() => cell.classList.remove('wrong'), 350);
   }
-}
-
-function updateTargetDisplay() {
-  const el = document.getElementById('target-number');
-  el.textContent = currentTarget <= totalCells ? currentTarget : '✓';
-  el.classList.remove('pop');
-  void el.offsetWidth;
-  el.classList.add('pop');
-  setTimeout(() => el.classList.remove('pop'), 200);
 }
 
 function updateProgress() {
@@ -155,7 +145,6 @@ function startGame() {
   document.getElementById('game-size-label').textContent = `${gridSize}×${gridSize}`;
   document.getElementById('timer-display').textContent = '0.0';
   document.getElementById('progress-bar').style.width = '0%';
-  updateTargetDisplay();
 
   buildGrid();
   stopTimer();
