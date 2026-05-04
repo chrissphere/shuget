@@ -12,6 +12,8 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
+    html { overscroll-behavior: none; }
+
     :root {
       --bg1: #0f0c29;
       --bg2: #302b63;
@@ -29,6 +31,7 @@
     body {
       font-family: var(--font);
       min-height: 100dvh;
+      overscroll-behavior: none;
       background: linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3));
       color: #eee;
       display: flex;
