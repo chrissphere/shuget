@@ -3,12 +3,25 @@ const DIFFICULTY = {
 };
 
 let gridSize = 5;
+let zoneEnabled = false;
 let currentTarget = 1;
 let totalCells = 25;
 let timerInterval = null;
 let startTime = null;
 let elapsed = 0;
 let gameActive = false;
+
+// ── Settings persistence ───────────────────────────────────
+const SETTINGS_KEY = 'schulte_settings';
+
+function loadPrefs() {
+  try { return JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {}; }
+  catch { return {}; }
+}
+
+function savePrefs(obj) {
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify({ ...loadPrefs(), ...obj }));
+}
 
 // ── Storage ──────────────────────────────────────────────
 function storageKey(size) { return `schulte_stats_${size}`; }
@@ -51,6 +64,7 @@ document.querySelectorAll('.size-btn').forEach(btn => {
     document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     gridSize = parseInt(btn.dataset.size);
+    savePrefs({ size: gridSize });
     updateHomeStats();
   });
 });
@@ -77,6 +91,25 @@ function shuffle(arr) {
   return arr;
 }
 
+function getZoneClass(idx) {
+  const row = Math.floor(idx / gridSize);
+  const col = idx % gridSize;
+  if (gridSize % 2 === 1) {
+    const mid = Math.floor(gridSize / 2);
+    if (row === mid || col === mid) return '';
+    if (row < mid && col < mid) return 'zone-tl';
+    if (row < mid && col > mid) return 'zone-tr';
+    if (row > mid && col < mid) return 'zone-bl';
+    return 'zone-br';
+  } else {
+    const half = gridSize / 2;
+    if (row < half && col < half) return 'zone-tl';
+    if (row < half && col >= half) return 'zone-tr';
+    if (row >= half && col < half) return 'zone-bl';
+    return 'zone-br';
+  }
+}
+
 function buildGrid() {
   const grid = document.getElementById('grid');
   grid.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
@@ -89,6 +122,10 @@ function buildGrid() {
   numbers.forEach((num, idx) => {
     const cell = document.createElement('div');
     cell.className = 'cell';
+    if (zoneEnabled) {
+      const zc = getZoneClass(idx);
+      if (zc) cell.classList.add(zc);
+    }
     cell.textContent = num;
     cell.dataset.num = num;
     cell.style.fontSize = fontSize;
@@ -177,6 +214,22 @@ function finishGame() {
 }
 
 // ── Init ──────────────────────────────────────────────────
+(function initPrefs() {
+  const p = loadPrefs();
+  gridSize = p.size || 5;
+  zoneEnabled = p.zone || false;
+
+  const sizeBtn = document.querySelector(`.size-btn[data-size="${gridSize}"]`);
+  if (sizeBtn) sizeBtn.classList.add('active');
+
+  const toggle = document.getElementById('toggle-zone');
+  toggle.checked = zoneEnabled;
+  toggle.addEventListener('change', () => {
+    zoneEnabled = toggle.checked;
+    savePrefs({ zone: zoneEnabled });
+  });
+})();
+
 updateHomeStats();
 showScreen('screen-home');
 

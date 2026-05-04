@@ -402,6 +402,11 @@ html, body {
   transform: scale(0.93);
 }
 
+.cell.zone-tl { background-color: rgba(74,124,255,0.10); }
+.cell.zone-tr { background-color: rgba(139,92,246,0.10); }
+.cell.zone-bl { background-color: rgba(34,197,94,0.10); }
+.cell.zone-br { background-color: rgba(245,158,11,0.10); }
+
 .cell.correct {
   background: var(--success-light);
   border-color: var(--success);
@@ -490,6 +495,61 @@ html, body {
   color: var(--text-secondary);
 }
 
+/* Toggle switch */
+.setting-row {
+  width: 100%;
+  max-width: 360px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.setting-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 26px;
+  flex-shrink: 0;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background: var(--border);
+  border-radius: 26px;
+  transition: background 0.2s;
+}
+
+.toggle-slider:before {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  left: 3px;
+  top: 3px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.toggle-switch input:checked + .toggle-slider { background: var(--primary); }
+.toggle-switch input:checked + .toggle-slider:before { transform: translateX(18px); }
+
 /* Dark mode */
 @media (prefers-color-scheme: dark) {
   :root {
@@ -504,4 +564,9 @@ html, body {
     --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
     --shadow-md: 0 4px 16px rgba(0,0,0,0.4);
   }
+
+  .cell.zone-tl { background-color: rgba(74,124,255,0.18); }
+  .cell.zone-tr { background-color: rgba(139,92,246,0.18); }
+  .cell.zone-bl { background-color: rgba(34,197,94,0.18); }
+  .cell.zone-br { background-color: rgba(245,158,11,0.18); }
 }
