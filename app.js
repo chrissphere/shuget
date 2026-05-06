@@ -8,6 +8,9 @@ let zoneDeep = false;
 let startNum = 1;
 let staggerEnabled = false;
 let staggerDelay = 12;
+let autoShuffleEnabled = false;
+let autoShuffleTimer = null;
+let shuffleIntervalMs = 2000;
 let currentTarget = 1;
 let totalCells = 25;
 let timerInterval = null;
@@ -76,6 +79,8 @@ document.querySelectorAll('.size-btn').forEach(btn => {
 document.getElementById('btn-start').addEventListener('click', startGame);
 document.getElementById('btn-back').addEventListener('click', () => {
   stopTimer();
+  stopAutoShuffle();
+  setAutoShuffle(false);
   showScreen('screen-home');
   updateHomeStats();
 });
@@ -136,12 +141,42 @@ function buildGrid() {
     cell.dataset.num = num;
     cell.style.fontSize = fontSize;
     if (staggerEnabled) cell.style.animationDelay = `${idx * staggerDelay}ms`;
-    cell.addEventListener('click', () => handleCellClick(cell, num));
+    cell.addEventListener('click', () => handleCellClick(cell, parseInt(cell.dataset.num)));
     grid.appendChild(cell);
   });
 }
 
-function handleCellClick(cell, num) {
+function reshufflePartial() {
+  const cells = [...document.querySelectorAll('#grid .cell:not(.correct)')];
+  const nums = cells.map(c => parseInt(c.dataset.num));
+  for (let i = nums.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [nums[i], nums[j]] = [nums[j], nums[i]];
+  }
+  cells.forEach((c, i) => { c.dataset.num = nums[i]; c.textContent = nums[i]; });
+}
+
+function startAutoShuffle() {
+  clearInterval(autoShuffleTimer);
+  autoShuffleTimer = setInterval(reshufflePartial, shuffleIntervalMs);
+}
+
+function stopAutoShuffle() {
+  clearInterval(autoShuffleTimer);
+  autoShuffleTimer = null;
+}
+
+function setAutoShuffle(on) {
+  autoShuffleEnabled = on;
+  const btn = document.getElementById('btn-auto-shuffle');
+  const row = document.getElementById('shuffle-speed-row');
+  btn.classList.toggle('active', on);
+  row.style.display = on ? 'flex' : 'none';
+  if (on && gameActive) startAutoShuffle();
+  else stopAutoShuffle();
+}
+
+
   if (!gameActive) return;
 
   if (num === currentTarget) {
@@ -192,12 +227,14 @@ function startGame() {
   buildGrid();
   stopTimer();
   startTimer();
+  if (autoShuffleEnabled) startAutoShuffle();
   showScreen('screen-game');
 }
 
 function finishGame() {
   gameActive = false;
   stopTimer();
+  stopAutoShuffle();
 
   saveStats(gridSize, elapsed);
   const s = loadStats(gridSize);
@@ -274,6 +311,22 @@ function finishGame() {
     staggerDelay = Math.max(12, Math.min(240, staggerDelay));
     inputStaggerDelay.value = staggerDelay;
     savePrefs({ staggerDelay });
+  });
+
+  shuffleIntervalMs = (p.shuffleInterval || 2000);
+  const sliderSpeed = document.getElementById('shuffle-speed');
+  const labelSpeed = document.getElementById('shuffle-speed-label');
+  sliderSpeed.value = shuffleIntervalMs / 1000;
+  labelSpeed.textContent = (shuffleIntervalMs / 1000) + 's';
+  sliderSpeed.addEventListener('input', () => {
+    shuffleIntervalMs = parseFloat(sliderSpeed.value) * 1000;
+    labelSpeed.textContent = sliderSpeed.value + 's';
+    savePrefs({ shuffleInterval: shuffleIntervalMs });
+    if (autoShuffleEnabled && gameActive) startAutoShuffle();
+  });
+
+  document.getElementById('btn-auto-shuffle').addEventListener('click', () => {
+    setAutoShuffle(!autoShuffleEnabled);
   });
 })();
 
